@@ -1,10 +1,11 @@
 var request = require('request'),
     cheerio = require('cheerio'),
-    fs = require('fs');
+    fs = require('fs'),
+    utf8 = require('utf8');
 
 function searchPortal(from, callback)
 {
-    if (from >= 20000) return callback();
+    if (from >= 150) return callback();
     const url = 'http://www.portaldalinguaportuguesa.org/advanced.php?&show=list&action=search&act=advanced&restrict=SUB&start=' + from;
 
     request(
@@ -24,10 +25,11 @@ function searchPortal(from, callback)
 
                 for (let i = 0; i < words.length; i++)
                 {
-                    const word = $(words[i].children[2]).text();
+                    let word = $(words[i].children[2]).text();
+                    word = utf8.decode(word.substring(0, word.length - 1));
 
                     data.push({
-                        word: word.substring(0, word.length - 1),
+                        word: word,
                         type: $(words[i].children[0]).text()
                     })
                 }
@@ -42,13 +44,11 @@ function searchPortal(from, callback)
 
 function save()
 {
+    console.log('Saving ' + data.length + ' words!');
     fs.writeFile('result.json', JSON.stringify(data), function(err) {
         console.log(err ? 'Error: ' + err : 'Success!');
     }); 
 }
 
 const data = [];
-searchPortal(0, () => {
-    console.log('Found ' + data.length + ' words!');
-    save();
-});
+searchPortal(0, save);

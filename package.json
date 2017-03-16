@@ -19,6 +19,7 @@
   "dependencies": {
     "async": "^2.1.5",
     "cheerio": "^0.22.0",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "utf8": "^2.1.2"
   }
 }
