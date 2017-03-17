@@ -31,7 +31,7 @@ function searchPortal(from, callback)
                     try {
                         word = utf8.decode(word);
                     } catch (error) {
-                        console.log('Could not decode the word \'' + word + '\'');
+                        console.log('Could not decode the word ' from + ' + ' + i + ':', word);
                     }
 
                     data.push({
