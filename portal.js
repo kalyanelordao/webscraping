@@ -5,7 +5,7 @@ var request = require('request'),
 
 function searchPortal(from, callback)
 {
-    if (from >= 450) return callback();
+    if (from >= 45000) return callback();
     const url = 'http://www.portaldalinguaportuguesa.org/advanced.php?&show=list&action=search&act=advanced&restrict=SUB&start=' + from;
 
     request(
@@ -31,7 +31,7 @@ function searchPortal(from, callback)
                     try {
                         word = utf8.decode(word);
                     } catch (error) {
-                        console.log('Could not decode the word ' from + ' + ' + i + ':', word);
+                        console.log('Could not decode the word ' + from + ' + ' + i + ':', word);
                     }
 
                     data.push({
