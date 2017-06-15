@@ -1,208 +1,70 @@
-var request = require('request'),
-    cheerio = require('cheerio'),
-    async = require('async');
+const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs'));
+const Corpus = require('./corpus').Corpus;
 
-/*
-search = {
-	word: string,
-	page: int
-}
-*/
-/*function searchGoogle(search, cb){
-	const word = search.word;
-	const url = 'https://www.google.com.br/search?hl=pt-BR&gl=br&tbm=nws&authuser=0&q=' + encodeURIComponent(word) + '&start=' + (10 * search.page);
+const file = fs.readFileSync('homonyms.txt', 'utf8');
+const words = file.split('\n');
 
-	//console.log('url:', url)
-
-	request({url: url, encoding: 'binary'}, 
-		function(err, resp, body){
-		if(!err && resp.statusCode == 200){
-			var $ = cheerio.load(body), capture = [];
-			
-			function textGetter(){
-				var titulo = $(this).text();
-				if(titulo.search(new RegExp(word, 'i')) >= 0)
-					capture.push(titulo); 
-			}
-			$('#ires a').each(textGetter);
-			$('#ires .st').each(textGetter);
-			cb(null, {word: word, result: capture});
-		}
-		else cb(err);
-	});
-}
-
-var words = ['pessoal', 'casa', 'são', 'caminho', 'cedo'];
-var searchs = [];
-
-for (let w in words) {
-	for (let page = 0; page < 5; page++)
-	{
-		searchs.push({
-			word: words[w],
-			page: page
-		});
-	}
-}
-
-if (false) async.map(searchs, searchGoogle, function(err, resultados){
-	if(!err){
-		console.log('GOOGLE');
-
-		for(let i in resultados)
-			//console.log(resultados[i]);
-			console.log(resultados[i].word, resultados[i].result.length);
-	}
-}); 
-
-
-function searchBing(search, cb){
-	const word = search;
-	const url = 'http://www.bing.com/news/search?q=' + encodeURIComponent(word);
-	
-	request({url: url, encoding: 'binary'}, 
-		function(err, resp, body){
-		if(!err && resp.statusCode == 200){
-			var $ = cheerio.load(body), capture = [];
-
-			function textGetter(){
-				var titulo = $(this).text();
-				if(titulo.search(new RegExp(word, 'i')) >= 0)
-					capture.push(titulo); 
-			}
-			$('.newsitem .caption a').each(textGetter);
-			$('.newsitem .caption .snippet').each(textGetter);
-			cb(null, {word: word, result: capture});
-		}
-		else cb(err);
-	});
-}
-
-var words = ['pessoal', 'casa', 'são', 'caminho', 'cedo'];
-var searchs = [];
-
-if (false) async.map(words, searchBing, function(err, resultados){
-	if(!err){
-		console.log('BING');
-
-		for(let i in resultados)
-			console.log(resultados[i].word, resultados[i].result.length);
-	}
+words.forEach((word, index) => {
+	word = word.trim();
+	words[index] = word.substr(0, word.length - 1).replace('_', ' ').toLowerCase();
 });
 
-function searchYahoo(search, cb){
-	const word = search.word;
-	const url = 'https://br.news.search.yahoo.com/search?p=' + encodeURIComponent(word) + '&b=' + (10 * search.page);
+const corpus = new Corpus();
 
-	//console.log('url:', url)
+//.login('kalyanelordao@gmail.com', 'kalylordao10')
+// words.forEach(async function (word, index) {
 
-	request({url: url, encoding: 'binary'}, 
-		function(err, resp, body){
-		if(!err && resp.statusCode == 200){
-			var $ = cheerio.load(body), capture = [];
-			
-			function textGetter(){
-				var titulo = $(this).text();
-				if(titulo.search(new RegExp(word, 'i')) >= 0)
-					capture.push(titulo); 
-			}
-			$('.searchCenterMiddle .title a').each(textGetter);
-			$('.searchCenterMiddle p').each(textGetter);
-			cb(null, {word: word, result: capture});
-		}
-		else cb(err ? err : 'status != 200');
-	});
-}
+async function getSentences()
+{
+	const data = {};
 
-var words = ['pessoal', 'casa', 'são','caminho', 'cedo'];
-var searchs = [];
-
-for (let w in words) {
-	for (let page = 0; page < 60; page++)
+	for (let i in words)
 	{
-		searchs.push({
-			word: words[w],
-			page: page
-		});
+		if (i >= 1) break;
+		const word = words[i];
+
+		try {
+			console.log('Request', word);
+			data[word] = await corpus.search(word, 1000);
+			console.log('Got', data[word].length, 'sentences from', word);
+		}
+		catch (error) {
+			console.error('Could not query', word);
+		}
+	}
+
+	try {
+		fs.writeFileSync('data.json', JSON.stringify(data));;
+		console.log('Saved at data.json');
+	}
+	catch (error) {
+		console.error('Could not save at data.json');
 	}
 }
 
-if (false) for (let i = 0; i < searchs.length; i += 5)
-{
-	const sub = searchs.splice(0, 5);
-	console.log('On i:', i);
+getSentences();
 
-	setInterval(function () {
-		async.map(searchs, searchYahoo, function(err, resultados){
-			if(!err){
-				console.log('YAHOO');
 
-				for(let i in resultados)
-					console.log(resultados[i].word, resultados[i].result.length);
-			}
-		});
-	}, (i / 5) * 1000);
-} 
-*/
+/*const c = require('./corpus');
 
-function searchG1(search, cb){
-	const word = search.word;
-		const url = 'https://br.news.search.yahoo.com/search?p=' + encodeURIComponent(word) + '&b=' + (10 * search.page);
-
-	//console.log('url:', url)
-
-	request({url: url, encoding: 'binary'}, 
-		function(err, resp, body){
-		if(!err && resp.statusCode == 200){
-			var $ = cheerio.load(body), capture = [];
-			
-			function textGetter(){
-				var titulo = $(this).text();
-				if(titulo.search(new RegExp(word, 'i')) >= 0)
-					capture.push(titulo); 
-			}
-			$('.searchCenterMiddle .title a').each(textGetter);
-			$('.searchCenterMiddle p').each(textGetter);
-			cb(null, {word: word, result: capture});
-		}
-		else cb(err ? err : 'status != 200');
-	});
-}
-
-var words = ['pessoal', 'casa', 'caminho', 'cedo', 'almoço', 'eu almoço', 'gosto', 'eu gosto'];
-var searchs = [];
-
-for (let w in words) {
-	for (let page = 0; page < 5; page++)
-	{
-		searchs.push({
-			word: words[w],
-			page: page
-		});
-	}
-}
-
-let i = -1;
-
-console.log('searchs:', searchs.length);
-while (searchs.length > 0)
-{
-	i++;
-
-	const sub = searchs.splice(0, 5);
-	console.log('On i:', i);
-
-	//setInterval(function () {
-		async.map(searchs, searchG1, function(err, resultados){
-			if(!err){
-				console.log('YAHOO');
-
-				for(let i in resultados)
-					console.log(resultados[i]);
-					//console.log(resultados[i].word, resultados[i].result.length);
-			}
-			else {
-				console.log('erro loko');
-			}
-		}, (i / 5) * 60000);
-} 
+c.start()
+	/*.then(cookies => {
+		return c.login(cookies, 'kalyanelordao@gmail.com', 'kalylordao10');
+	})*
+	.then(cookies => {
+		return c.search(cookies, 'casa');
+	})
+	.then(searchCookies => {
+		return c.enter(searchCookies, 'casa');
+	})
+	.then(response => {
+		return c.enter(response.cookies, 'casa', 1000);
+	})
+	.then(response => {
+		return c.extractSentences(response.data);
+	})
+	.then(console.log)
+	.catch(error => {
+		console.error('Error', error.response.body);
+	});*/
